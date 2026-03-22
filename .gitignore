@@ -1,1 +1,33 @@
 plan*.md
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+*.so
+
+# 环境
+.env
+.venv/
+
+# 数据库（运行时自动生成）
+*.db
+
+# 工作区（Agent运行时创建）
+workspace/
+.worktrees/
+
+# 事件日志
+events.jsonl
+
+# IDE / 工具
+.vscode/
+.idea/
+.claude/
+
+# 测试/缓存
+.pytest_cache/
+.mypy_cache/

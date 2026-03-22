@@ -1,0 +1,8 @@
+[project]
+name = "agentforge-lite"
+version = "0.1.0"
+description = "Lightweight multi-agent harness platform"
+requires-python = ">=3.10"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
