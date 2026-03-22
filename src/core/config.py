@@ -46,3 +46,6 @@ TODO_NAG_INTERVAL = 3  # 每隔N轮提醒
 
 # 子Agent
 SUBAGENT_MAX_ROUNDS = 10
+
+# Tavily搜索
+TAVILY_API_KEY = os.getenv("TAVILY_API_KEY", "")

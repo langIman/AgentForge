@@ -14,7 +14,7 @@ class TodoItem(BaseModel):
 
 
 class AgentState(TypedDict):
-    """Agent状态（Phase 1 + Phase 2）
+    """Agent状态（Phase 1 + Phase 2 + Phase 3）
 
     后续Phase只需新增字段，不修改已有字段。
     """
@@ -27,3 +27,9 @@ class AgentState(TypedDict):
     token_count: int
     compressed: bool
     tasks_snapshot: str
+    # Phase 3
+    bg_notifications: list[str]
+    inbox_messages: list[dict]
+    agent_name: str
+    agent_role: str
+    team_name: str

@@ -1,6 +1,6 @@
 """AgentForge Lite — CLI主入口（REPL）
 
-Phase 2: 加入SqliteSaver checkpointer、数据库初始化、新工具、会话恢复。
+Phase 3: 加入后台任务、团队管理、协议工具。
 """
 
 import asyncio
@@ -11,24 +11,37 @@ from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.sqlite import SqliteSaver
 
+from src.background.manager import bg_manager
 from src.core.config import MODEL_NAME, OPENAI_API_BASE, OPENAI_API_KEY, WORKSPACE_ROOT
 from src.core.graph import build_graph
 from src.core.nodes import make_nodes
 from src.core.state import AgentState
 from src.storage.database import init_db
+from src.team.mailbox import mailbox
 from src.tools.bash import bash
+from src.tools.background import background_run, check_background
 from src.tools.compact import compact
 from src.tools.file_ops import edit_file, read_file, write_file
+from src.tools.protocol import plan_approval, shutdown_request
 from src.tools.skill import load_skill, skill_loader
 from src.tools.subagent import spawn_subagent
 from src.tools.task import task_create, task_get, task_list, task_update
+from src.tools.team import (
+    broadcast,
+    list_teammates,
+    read_inbox,
+    send_message,
+    spawn_teammate,
+    teammate_manager,
+)
 from src.tools.todo import todo_manager, todo_write
+from src.tools.web_search import web_search
 
 
 def create_agent(checkpointer=None):
     """构建主Agent图
 
-    Phase 2: 新增5个工具（compact + task CRUD），加入checkpointer。
+    Phase 3: 新增9个工具（后台+团队+协议），加入bg_manager和mailbox。
     """
     tools = [
         # P1 工具
@@ -36,13 +49,20 @@ def create_agent(checkpointer=None):
         todo_write, spawn_subagent, load_skill,
         # P2 工具
         compact, task_create, task_update, task_list, task_get,
+        # P3 工具
+        background_run, check_background,
+        spawn_teammate, list_teammates,
+        send_message, read_inbox, broadcast,
+        shutdown_request, plan_approval,
+        # 搜索工具
+        web_search,
     ]
     model = ChatOpenAI(
         model=MODEL_NAME,
         api_key=OPENAI_API_KEY,
         base_url=OPENAI_API_BASE,
     ).bind_tools(tools)
-    nodes = make_nodes(model, skill_loader)
+    nodes = make_nodes(model, skill_loader, bg_manager=bg_manager, mailbox=mailbox)
     graph = build_graph(AgentState, nodes, tools, checkpointer=checkpointer)
     return graph
 
@@ -70,11 +90,12 @@ def main():
         config = {"configurable": {"thread_id": session_id}}
 
         print("=" * 60)
-        print("  AgentForge Lite — Phase 2")
+        print("  AgentForge Lite — Phase 3")
         print(f"  Model: {MODEL_NAME}")
         print(f"  Workspace: {WORKSPACE_ROOT}")
         print(f"  Session: {session_id}")
-        print("  输入 'quit'/'exit' 退出 | 'todos' 查看待办 | 'tasks' 查看任务")
+        print("  输入 'quit'/'exit' 退出 | 'todos' 查看待办")
+        print("  'tasks' 查看任务 | 'team' 查看团队 | 'bg' 查看后台任务")
         print("=" * 60)
         print()
 
@@ -97,6 +118,14 @@ def main():
                 result = task_list.invoke({"status": None})
                 print(result)
                 continue
+            if user_input.lower() == "team":
+                result = list_teammates.invoke({})
+                print(result)
+                continue
+            if user_input.lower() == "bg":
+                result = check_background.invoke({"task_id": ""})
+                print(result)
+                continue
 
             try:
                 result = agent.invoke(
@@ -108,6 +137,12 @@ def main():
                         "token_count": 0,
                         "compressed": False,
                         "tasks_snapshot": "",
+                        # P3 fields
+                        "bg_notifications": [],
+                        "inbox_messages": [],
+                        "agent_name": "lead",
+                        "agent_role": "Lead Agent",
+                        "team_name": "default",
                     },
                     config,
                 )
