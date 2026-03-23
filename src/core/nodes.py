@@ -6,7 +6,7 @@ from langchain_core.messages import AIMessage, SystemMessage, ToolMessage
 
 from src.core.config import MODEL_NAME, TODO_NAG_INTERVAL, TOKEN_THRESHOLD
 from src.memory.compressor import auto_compact, estimate_tokens, micro_compact
-from src.memory.transcript import transcript_repo
+from src.storage.transcript_repo import transcript_repo
 from src.tools.todo import todo_manager
 
 
@@ -63,13 +63,13 @@ def _run_async(coro):
         return asyncio.run(coro)
 
 
-def make_nodes(model, skill_loader=None, bg_manager=None, mailbox=None):
+def make_nodes(model, skill_loader=None, bg_cmd_runner=None, mailbox=None):
     """创建图节点字典。
 
     Args:
         model: 已bind_tools的LLM实例
         skill_loader: 技能加载器（可选）
-        bg_manager: 后台任务管理器（Phase 3，可选）
+        bg_cmd_runner: 后台命令运行器（Phase 3，可选）
         mailbox: 消息总线（Phase 3，可选）
 
     Returns:
@@ -114,8 +114,8 @@ def make_nodes(model, skill_loader=None, bg_manager=None, mailbox=None):
             updates["compressed"] = False
 
         # Phase 3: 注入后台任务通知
-        if bg_manager:
-            notifications = bg_manager.drain_notifications()
+        if bg_cmd_runner:
+            notifications = bg_cmd_runner.drain_notifications()
             if notifications:
                 lines = []
                 for n in notifications:
@@ -146,7 +146,7 @@ def make_nodes(model, skill_loader=None, bg_manager=None, mailbox=None):
 
     def agent(state):
         """调用LLM"""
-        has_team = bg_manager is not None or mailbox is not None
+        has_team = bg_cmd_runner is not None or mailbox is not None
         system_prompt = get_system_prompt(skill_loader, has_team=has_team)
         messages = [SystemMessage(content=system_prompt)] + state["messages"]
         response = model.invoke(messages)

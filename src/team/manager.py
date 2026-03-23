@@ -22,6 +22,7 @@ from src.team.mailbox import InMemoryMailbox, make_read_inbox_tool, make_send_to
 from src.team.worker_graph import build_worker_graph
 from src.tools.bash import bash
 from src.tools.file_ops import edit_file, read_file, write_file
+from src.tools.subagent import spawn_subagent
 
 
 class TeammateManager:
@@ -55,7 +56,7 @@ class TeammateManager:
         worker_send = make_send_tool(name, self.mailbox)
         worker_read = make_read_inbox_tool(name, self.mailbox)
         worker_tools = [bash, read_file, write_file, edit_file,
-                        worker_send, worker_read]
+                        spawn_subagent, worker_send, worker_read]
 
         # 创建Worker专用model
         worker_model = ChatOpenAI(

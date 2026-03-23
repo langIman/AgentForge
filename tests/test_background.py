@@ -1,21 +1,21 @@
-"""测试后台任务管理器"""
+"""测试后台命令运行器"""
 
 import time
 from unittest.mock import patch
 
 import pytest
 
-from src.background.manager import BackgroundManager
+from src.tools.background import BackgroundCommandRunner
 
 
-class TestBackgroundManager:
+class TestBackgroundCommandRunner:
     @pytest.fixture
     def manager(self):
-        return BackgroundManager()
+        return BackgroundCommandRunner()
 
     @pytest.fixture(autouse=True)
     def patch_workspace(self, tmp_path):
-        with patch("src.background.manager.WORKSPACE_ROOT", tmp_path):
+        with patch("src.tools.background.WORKSPACE_ROOT", tmp_path):
             yield
 
     def test_run_returns_task_id(self, manager):

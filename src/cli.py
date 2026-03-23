@@ -11,7 +11,7 @@ from langchain_core.messages import HumanMessage
 from langchain_openai import ChatOpenAI
 from langgraph.checkpoint.sqlite import SqliteSaver
 
-from src.background.manager import bg_manager
+from src.tools.background import bg_cmd_runner
 from src.core.config import MODEL_NAME, OPENAI_API_BASE, OPENAI_API_KEY, WORKSPACE_ROOT
 from src.core.graph import build_graph
 from src.core.nodes import make_nodes
@@ -41,7 +41,7 @@ from src.tools.web_search import web_search
 def create_agent(checkpointer=None):
     """构建主Agent图
 
-    Phase 3: 新增9个工具（后台+团队+协议），加入bg_manager和mailbox。
+    Phase 3: 新增9个工具（后台+团队+协议），加入bg_cmd_runner和mailbox。
     """
     tools = [
         # P1 工具
@@ -62,7 +62,7 @@ def create_agent(checkpointer=None):
         api_key=OPENAI_API_KEY,
         base_url=OPENAI_API_BASE,
     ).bind_tools(tools)
-    nodes = make_nodes(model, skill_loader, bg_manager=bg_manager, mailbox=mailbox)
+    nodes = make_nodes(model, skill_loader, bg_cmd_runner=bg_cmd_runner, mailbox=mailbox)
     graph = build_graph(AgentState, nodes, tools, checkpointer=checkpointer)
     return graph
 

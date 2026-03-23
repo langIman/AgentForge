@@ -10,7 +10,7 @@ from typing import Optional
 
 from langchain_core.tools import tool
 
-from src.storage.repository import task_repo
+from src.storage.task_repo import task_repo
 
 
 def _run_async(coro):

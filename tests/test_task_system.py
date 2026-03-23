@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from src.storage.database import Base
 from src.storage.models import Task, Transcript
-from src.storage.repository import TaskRepository
+from src.storage.task_repo import TaskRepository
 
 
 @pytest_asyncio.fixture(autouse=True)
@@ -20,8 +20,8 @@ async def setup_db():
 
     # Patch SessionLocal in both modules
     import src.storage.database as db_module
-    import src.storage.repository as repo_module
-    import src.memory.transcript as transcript_module
+    import src.storage.task_repo as repo_module
+    import src.storage.transcript_repo as transcript_module
 
     original_session = db_module.SessionLocal
 
@@ -203,7 +203,7 @@ class TestTranscriptModel:
     @pytest.mark.asyncio
     async def test_transcript_save(self):
         """对话存档保存"""
-        from src.memory.transcript import TranscriptRepository
+        from src.storage.transcript_repo import TranscriptRepository
 
         repo = TranscriptRepository()
         tid = await repo.save(
